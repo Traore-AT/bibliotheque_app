@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="<?= e($metaDescription ?? 'Bibliothèque numérique en ligne : catalogue de livres, recherche, liste de lecture et administration.') ?>">
+    <meta name="description" content="<?= e($metaDescription ?? 'BibliothÃ¨que numÃ©rique en ligne : catalogue de livres, recherche, liste de lecture et administration.') ?>">
     <meta name="theme-color" content="#0F172A">
-    <title><?= e($title ?? 'Bibliothèque Numérique') ?> — <?= e(APP_NAME) ?></title>
+    <title><?= e($title ?? 'BibliothÃ¨que NumÃ©rique') ?> â€” <?= e(APP_NAME) ?></title>
 
     <!-- Typographie : Plus Jakarta Sans (font-display: swap) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,12 +15,12 @@
     <!-- Style principal -->
     <link rel="stylesheet" href="<?= e(APP_BASE_URL) ?>/css/style.css">
 
-    <!-- Favicon SVG léger (éco-conception) -->
+    <!-- Favicon SVG lÃ©ger (Ã©co-conception) -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%230F766E'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E">
 </head>
 <body data-app-base="<?= e(APP_BASE_URL) ?>">
 
-    <!-- ===== Sprite d'icônes SVG (éco-conception : une seule définition, réutilisable) ===== -->
+    <!-- ===== Sprite d'icÃ´nes SVG (Ã©co-conception : une seule dÃ©finition, rÃ©utilisable) ===== -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
         <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v15H6.5A2.5 2.5 0 0 0 4 20.5v-15ZM13 3h4.5A2.5 2.5 0 0 1 20 5.5v15A2.5 2.5 0 0 0 17.5 18H13V3Z"/></symbol>
         <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-9.6-9C.8 8 2.6 4.5 6 4.5c2 0 3.4 1 4.2 2.2l1.8 2.6 1.8-2.6c.8-1.2 2.2-2.2 4.2-2.2 3.4 0 5.2 3.5 3.6 7.5-2.1 4.3-9.6 9-9.6 9Z"/></symbol>
@@ -63,19 +63,19 @@
         <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H8V7h11v14Z"/></symbol>
     </svg>
 
-    <!-- Saut de navigation : accessibilité WCAG -->
+    <!-- Saut de navigation : accessibilitÃ© WCAG -->
     <a class="skip-link" href="#contenu">Aller au contenu principal</a>
 
-    <!-- ===== TOP BAR SUPÉRIEURE (SaaS Modern UI) ===== -->
+    <!-- ===== TOP BAR SUPÃ‰RIEURE (SaaS Modern UI) ===== -->
     <div class="site-topbar">
         <div class="container topbar-inner">
             <div class="topbar-left">
-                <a href="mailto:contact@bibliotheque.sn" class="topbar-item" title="Écrivez-nous par email">
+                <a href="mailto:contact@bibliotheque.sn" class="topbar-item" title="Ã‰crivez-nous par email">
                     <svg class="icon"><use href="#i-mail"/></svg>
                     <span>contact@bibliotheque.sn</span>
                 </a>
                 <span class="topbar-divider"></span>
-                <a href="tel:+224627979359" class="topbar-item" title="Assistance téléphonique">
+                <a href="tel:+224627979359" class="topbar-item" title="Assistance tÃ©lÃ©phonique">
                     <svg class="icon"><use href="#i-phone"/></svg>
                     <span>+224 627 97 93 59</span>
                 </a>
@@ -85,7 +85,7 @@
                 <a href="<?= e(url('blog', ['categorie' => 'Formation D-CLIC'])) ?>" class="topbar-announce">
                     <span class="topbar-pulse"></span>
                     <svg class="icon"><use href="#i-award"/></svg>
-                    <span class="topbar-announce-text">Projet Final D-CLIC • Niveau Intermédiaire Web</span>
+                    <span class="topbar-announce-text">Projet Final D-CLIC â€¢ Niveau IntermÃ©diaire Web</span>
                     <span class="topbar-arrow">&rarr;</span>
                 </a>
             </div>
@@ -93,13 +93,13 @@
             <div class="topbar-right">
                 <span class="topbar-status">
                     <span class="status-dot"></span>
-                    <span>Accès 24/7</span>
+                    <span>AccÃ¨s 24/7</span>
                 </span>
                 <span class="topbar-divider"></span>
                 <a href="<?= e(url('contact')) ?>" class="topbar-link">Aide &amp; FAQ</a>
                 <?php if ($currentUser !== null): ?>
                     <span class="topbar-divider"></span>
-                    <a href="<?= e(url('profile')) ?>" class="topbar-user-badge" title="Accéder à mon espace">
+                    <a href="<?= e(url('profile')) ?>" class="topbar-user-badge" title="AccÃ©der Ã  mon espace">
                         <svg class="icon"><use href="#i-user"/></svg>
                         <span><?= e($currentUser['prenom'] ?? 'Membre') ?></span>
                     </a>
@@ -110,7 +110,7 @@
 
     <header class="site-header" role="banner">
         <div class="container header-inner">
-            <a class="brand" href="<?= e(url('')) ?>" aria-label="Accueil — Bibliothèque Numérique">
+            <a class="brand" href="<?= e(url('')) ?>" aria-label="Accueil â€” BibliothÃ¨que NumÃ©rique">
                 <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#i-library"/></svg></span>
                 <span>
                     <span class="brand-name"><?= e(APP_NAME) ?></span>
@@ -149,7 +149,7 @@
                         </li>
                         <li>
                             <a class="nav-link <?= ($currentPage ?? '') === 'auth/register' ? 'is-active' : '' ?>" href="<?= e(url('inscription')) ?>">
-                                <svg class="icon"><use href="#i-plus"/></svg> Créer un compte
+                                <svg class="icon"><use href="#i-plus"/></svg> CrÃ©er un compte
                             </a>
                         </li>
                     <?php else: ?>
@@ -183,7 +183,7 @@
                             </li>
                             <li>
                                 <a class="nav-link <?= ($currentPage ?? '') === 'admin/books' ? 'is-active' : '' ?>" href="<?= e(url('admin/books')) ?>">
-                                    <svg class="icon"><use href="#i-flag"/></svg> Modération
+                                    <svg class="icon"><use href="#i-flag"/></svg> ModÃ©ration
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -192,7 +192,7 @@
                             <form class="nav-form" action="<?= e(url('logout')) ?>" method="post">
                                 <?= \App\Core\Csrf::field() ?>
                                 <button type="submit" class="nav-link nav-btn">
-                                    <svg class="icon"><use href="#i-logout"/></svg> Déconnexion
+                                    <svg class="icon"><use href="#i-logout"/></svg> DÃ©connexion
                                 </button>
                             </form>
                         </li>
@@ -202,7 +202,7 @@
         </div>
     </header>
 
-    <!-- Conteneur des messages flash => affichés en toasts -->
+    <!-- Conteneur des messages flash => affichÃ©s en toasts -->
     <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="false">
         <?php if (!empty($flashMessages)): ?>
             <?php foreach ($flashMessages as $type => $messages): ?>
@@ -223,7 +223,7 @@
         <?php endif; ?>
     </div>
 
-    <!-- Conteneur du panneau latéral (drawer) — utilisé uniquement par l'admin -->
+    <!-- Conteneur du panneau latÃ©ral (drawer) â€” utilisÃ© uniquement par l'admin -->
     <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>
 
     <!-- Modale de confirmation globale -->
@@ -232,7 +232,7 @@
         <div class="modal-dialog">
             <span class="modal-ic"><svg class="icon"><use href="#i-alert"/></svg></span>
             <h2 class="modal-title" id="confirm-title">Confirmer</h2>
-            <p class="modal-text" id="confirm-text">Êtes-vous sûr de vouloir continuer ?</p>
+            <p class="modal-text" id="confirm-text">ÃŠtes-vous sÃ»r de vouloir continuer ?</p>
             <div class="modal-actions">
                 <button type="button" class="btn btn--soft" data-modal-close>Annuler</button>
                 <button type="button" class="btn btn--danger" data-modal-confirm>Supprimer</button>
@@ -251,15 +251,15 @@
                     <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#i-library"/></svg></span>
                     <span>
                         <span class="brand-name"><?= e(APP_NAME) ?></span>
-                        <span class="brand-sub">Catalogue &amp; lecture numérique</span>
+                        <span class="brand-sub">Catalogue &amp; lecture numÃ©rique</span>
                     </span>
                 </a>
                 <p class="footer-desc">
-                    Plateforme web moderne développée comme projet de fin de formation de niveau intermédiaire en développement web (Programme D-CLIC).
+                    Plateforme web moderne dÃ©veloppÃ©e comme projet de fin de formation de niveau intermÃ©diaire en dÃ©veloppement web (Programme D-CLIC).
                 </p>
                 <div class="footer-partner-badge">
                     <span class="fpb-label">Partenaire &bull; Programme D-CLIC</span>
-                    <a href="<?= e(url('blog', ['categorie' => 'Formation D-CLIC'])) ?>" class="fpb-logo-link" title="Découvrir le programme D-CLIC">
+                    <a href="<?= e(url('blog', ['categorie' => 'Formation D-CLIC'])) ?>" class="fpb-logo-link" title="DÃ©couvrir le programme D-CLIC">
                         <img src="<?= e(APP_BASE_URL) ?>/img/OIF_LOGO-BLOC%20MARQUE%20OIF_CMJN.jpg" alt="Logo OIF / D-CLIC - Organisation Internationale de la Francophonie" class="footer-oif-logo">
                     </a>
                 </div>
@@ -278,7 +278,7 @@
                     <ul class="footer-links">
                         <?php if ($currentUser === null): ?>
                             <li><a href="<?= e(url('login')) ?>">Connexion</a></li>
-                            <li><a href="<?= e(url('inscription')) ?>">Créer un compte</a></li>
+                            <li><a href="<?= e(url('inscription')) ?>">CrÃ©er un compte</a></li>
                         <?php else: ?>
                             <li><a href="<?= e(url('profile')) ?>">Mon espace</a></li>
                             <li><a href="<?= e(url('auteur')) ?>">Espace auteur</a></li>
@@ -289,15 +289,20 @@
             </div>
         </div>
         <div class="container footer-bottom">
-            <span>&copy; <?= date('Y') ?> — <?= e(APP_NAME) ?>. Tous droits réservés.</span>
+            <span>&copy; <?= date('Y') ?> â€” <?= e(APP_NAME) ?>. Tous droits rÃ©servÃ©s.</span>
             <span class="footer-credit">
-                <svg class="icon"><use href="#i-spark"/></svg> Projet de fin de formation D-CLIC — <strong>Traoré Alseny</strong> &amp; Mentorat
+                <svg class="icon"><use href="#i-spark"/></svg> Projet de fin de formation D-CLIC â€” <strong>TraorÃ© Alseny</strong> &amp; Mentorat
             </span>
         </div>
     </footer>
 
     <!-- Fallback : sans JS, le contenu reste visible -->
     <noscript><style>.reveal,.reveal-stagger>*, .reveal-stagger > *{opacity:1 !important;transform:none !important}</style></noscript>
+
+    <!-- Chart.js -- chargé uniquement sur les pages d'administration -->
+    <?php if (str_starts_with($currentPage ?? '', 'admin/')): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <?php endif; ?>
 
     <!-- Script principal : recherche AJAX, toasts, modale, drawer, micro-interactions -->
     <script src="<?= e(APP_BASE_URL) ?>/js/app.js" defer></script>

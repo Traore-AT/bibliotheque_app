@@ -1,68 +1,233 @@
-<?php /** Vue : tableau de bord d'administration (CRUD + panneau latéral) */ ?>
+<?php /** Vue : tableau de bord d'administration — Charte graphique premium + Charts */ ?>
 
-<section class="container page-inner">
-    <div class="page-head reveal">
-        <div>
-            <h1>Administration</h1>
-            <p class="head-meta">Gérez le catalogue : ajout, modification, suppression.</p>
+<?php
+/* Calcul du max pour le classement des livres */
+$topMax = 0;
+if (!empty($chartTopBooks)) {
+    $topBooksArr = json_decode($chartTopBooks, true) ?: [];
+    foreach ($topBooksArr as $tb) { $topMax = max($topMax, (int)($tb['total'] ?? 0)); }
+} else {
+    $topBooksArr = [];
+}
+?>
+
+<section class="admin-dashboard">
+
+    <!-- ====== EN-TÊTE ====== -->
+    <div class="admin-page-head reveal">
+        <div class="admin-page-head__text">
+            <div class="admin-badge">
+                <svg class="icon"><use href="#i-spark"/></svg>
+                Administration
+            </div>
+            <h1>Tableau de bord</h1>
+            <p class="admin-page-head__sub">Vue d'ensemble de la bibliothèque numérique en temps réel</p>
         </div>
-        <button type="button" class="btn btn--brand btn--lg" data-open-create>
-            <svg class="icon"><use href="#i-plus"/></svg> Ajouter un livre
-        </button>
+        <div class="admin-page-head__actions">
+            <a href="<?= e(url('admin/books', ['statut' => 'en_attente'])) ?>" class="btn btn--soft btn--sm">
+                <svg class="icon"><use href="#i-clock"/></svg>
+                <?= number_format($stats['en_attente']) ?> en attente
+            </a>
+            <button type="button" class="btn btn--brand btn--lg" data-open-create>
+                <svg class="icon"><use href="#i-plus"/></svg> Ajouter un livre
+            </button>
+        </div>
     </div>
 
-    <!-- ---- Statistiques ---- -->
-    <div class="stats reveal">
-        <div class="stat">
-            <span class="stat-icon stat-icon--teal"><svg class="icon"><use href="#i-library"/></svg></span>
-            <div>
-                <p class="stat-num"><?= number_format($stats['livres']) ?></p>
-                <p class="stat-label">Livres au catalogue</p>
+    <!-- ====== STAT CARDS PREMIUM ====== -->
+    <div class="stat-cards reveal">
+
+        <div class="stat-card stat-card--teal">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-library"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['livres'] ?>">0</p>
+                <p class="stat-card__label">Livres au catalogue</p>
+            </div>
+            <div class="stat-card__bar" style="--bar-pct: 100%"></div>
+        </div>
+
+        <div class="stat-card stat-card--blue">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-users"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['utilisateurs'] ?>">0</p>
+                <p class="stat-card__label">Utilisateurs inscrits</p>
+            </div>
+            <div class="stat-card__bar" style="--bar-pct: 100%"></div>
+        </div>
+
+        <div class="stat-card stat-card--amber">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-clock"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['emprunts_actifs'] ?>">0</p>
+                <p class="stat-card__label">Emprunts en cours</p>
+            </div>
+            <?php
+                $pctEmprunts = $stats['emprunts_total'] > 0
+                    ? round($stats['emprunts_actifs'] / $stats['emprunts_total'] * 100)
+                    : 0;
+            ?>
+            <div class="stat-card__bar" style="--bar-pct: <?= $pctEmprunts ?>%"></div>
+        </div>
+
+        <div class="stat-card <?= $stats['retards'] > 0 ? 'stat-card--danger' : 'stat-card--teal' ?>">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-flag"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['retards'] ?>">0</p>
+                <p class="stat-card__label">Emprunts en retard</p>
+            </div>
+            <?php $pctRetard = $stats['emprunts_actifs'] > 0
+                ? round($stats['retards'] / $stats['emprunts_actifs'] * 100) : 0; ?>
+            <div class="stat-card__bar" style="--bar-pct: <?= $pctRetard ?>%"></div>
+        </div>
+
+        <div class="stat-card stat-card--purple">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-star"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['avis'] ?>">0</p>
+                <p class="stat-card__label">Avis publiés</p>
+            </div>
+            <div class="stat-card__bar" style="--bar-pct: 100%"></div>
+        </div>
+
+        <a class="stat-card stat-card--orange stat-card--link"
+           href="<?= e(url('admin/books', ['statut' => 'en_attente'])) ?>"
+           title="Voir les livres en attente">
+            <div class="stat-card__icon">
+                <svg class="icon"><use href="#i-clock"/></svg>
+            </div>
+            <div class="stat-card__body">
+                <p class="stat-card__num" data-countup="<?= (int) $stats['en_attente'] ?>">0</p>
+                <p class="stat-card__label">Livres à modérer</p>
+            </div>
+            <div class="stat-card__bar" style="--bar-pct: 100%"></div>
+        </a>
+
+    </div>
+
+    <!-- ====== ZONE GRAPHIQUES ====== -->
+    <div class="charts-grid reveal">
+
+        <!-- Graphique 1 : Emprunts par mois (barres) -->
+        <div class="chart-card chart-card--wide">
+            <div class="chart-card__head">
+                <div>
+                    <h2 class="chart-card__title">Activité des emprunts</h2>
+                    <p class="chart-card__sub">6 derniers mois</p>
+                </div>
+                <span class="chart-legend-dot chart-legend-dot--teal"></span>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chart-loans" aria-label="Graphique emprunts par mois" role="img"></canvas>
             </div>
         </div>
-        <div class="stat">
-            <span class="stat-icon stat-icon--blue"><svg class="icon"><use href="#i-users"/></svg></span>
-            <div>
-                <p class="stat-num"><?= number_format($stats['utilisateurs']) ?></p>
-                <p class="stat-label">Utilisateurs inscrits</p>
+
+        <!-- Graphique 2 : Répartition des livres (donut) -->
+        <div class="chart-card">
+            <div class="chart-card__head">
+                <div>
+                    <h2 class="chart-card__title">Statut des livres</h2>
+                    <p class="chart-card__sub">Répartition du catalogue</p>
+                </div>
+            </div>
+            <div class="chart-wrap chart-wrap--donut">
+                <canvas id="chart-books" aria-label="Répartition des livres par statut" role="img"></canvas>
+            </div>
+            <!-- Légende donut -->
+            <ul class="donut-legend">
+                <li><span class="donut-legend__dot" style="background:#0F766E"></span>Publiés <strong><?= $stats['livres'] - $stats['en_attente'] ?></strong></li>
+                <li><span class="donut-legend__dot" style="background:#D97706"></span>En attente <strong><?= $stats['en_attente'] ?></strong></li>
+                <li><span class="donut-legend__dot" style="background:#DC2626"></span>Refusés <strong><?= number_format((int)\App\Models\Book::STATUT_REFUSE === 'refuse' ? 0 : 0) ?></strong></li>
+            </ul>
+        </div>
+
+        <!-- Graphique 3 : Croissance utilisateurs (ligne) -->
+        <div class="chart-card">
+            <div class="chart-card__head">
+                <div>
+                    <h2 class="chart-card__title">Nouvelles inscriptions</h2>
+                    <p class="chart-card__sub">Croissance sur 6 mois</p>
+                </div>
+                <span class="chart-legend-dot chart-legend-dot--blue"></span>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chart-users" aria-label="Croissance des inscriptions" role="img"></canvas>
             </div>
         </div>
-        <div class="stat">
-            <span class="stat-icon stat-icon--amber"><svg class="icon"><use href="#i-clock"/></svg></span>
-            <div>
-                <p class="stat-num"><?= number_format($stats['emprunts_actifs']) ?></p>
-                <p class="stat-label">Emprunts en cours</p>
-            </div>
+
+    </div>
+
+    <!-- ====== TOP LIVRES ====== -->
+    <?php if (!empty($topBooksArr)): ?>
+    <div class="top-books reveal">
+        <div class="section-head">
+            <h2 class="section-title">Top <em>livres</em> empruntés</h2>
+            <a href="<?= e(url('admin/loans')) ?>" class="link-more">Voir tous les emprunts →</a>
         </div>
-        <div class="stat">
-            <span class="stat-icon <?= $stats['retards'] > 0 ? 'stat-icon--red' : 'stat-icon--teal' ?>">
+        <div class="top-books__list">
+            <?php foreach ($topBooksArr as $rank => $tb): ?>
+            <?php $pct = $topMax > 0 ? round(((int)$tb['total'] / $topMax) * 100) : 0; ?>
+            <div class="top-book-item">
+                <span class="top-book-rank">#<?= $rank + 1 ?></span>
+                <div class="top-book-info">
+                    <strong class="top-book-title"><?= e($tb['titre']) ?></strong>
+                    <span class="top-book-author"><?= e($tb['auteur']) ?></span>
+                </div>
+                <div class="top-book-bar-wrap">
+                    <div class="top-book-bar" style="--bar-w: <?= $pct ?>%"></div>
+                </div>
+                <span class="top-book-count"><?= (int)$tb['total'] ?> emprunt<?= $tb['total'] > 1 ? 's' : '' ?></span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ====== QUICK LINKS ADMIN ====== -->
+    <div class="admin-quick-links reveal">
+        <a href="<?= e(url('admin/users')) ?>" class="admin-quick-card">
+            <span class="admin-quick-card__icon admin-quick-card__icon--blue">
+                <svg class="icon"><use href="#i-users"/></svg>
+            </span>
+            <div>
+                <strong>Gérer les utilisateurs</strong>
+                <span><?= number_format($stats['utilisateurs']) ?> inscrits</span>
+            </div>
+            <svg class="icon admin-quick-card__arrow"><use href="#i-arrow"/></svg>
+        </a>
+        <a href="<?= e(url('admin/loans')) ?>" class="admin-quick-card">
+            <span class="admin-quick-card__icon admin-quick-card__icon--teal">
+                <svg class="icon"><use href="#i-return"/></svg>
+            </span>
+            <div>
+                <strong>Gérer les emprunts</strong>
+                <span><?= number_format($stats['emprunts_actifs']) ?> en cours</span>
+            </div>
+            <svg class="icon admin-quick-card__arrow"><use href="#i-arrow"/></svg>
+        </a>
+        <a href="<?= e(url('admin/books', ['statut' => 'en_attente'])) ?>" class="admin-quick-card <?= $stats['en_attente'] > 0 ? 'admin-quick-card--alert' : '' ?>">
+            <span class="admin-quick-card__icon admin-quick-card__icon--amber">
                 <svg class="icon"><use href="#i-flag"/></svg>
             </span>
             <div>
-                <p class="stat-num"><?= number_format($stats['retards']) ?></p>
-                <p class="stat-label">Emprunts en retard</p>
+                <strong>Modération des livres</strong>
+                <span><?= number_format($stats['en_attente']) ?> en attente de validation</span>
             </div>
-        </div>
-        <div class="stat">
-            <span class="stat-icon stat-icon--amber"><svg class="icon"><use href="#i-star"/></svg></span>
-            <div>
-                <p class="stat-num"><?= number_format($stats['avis']) ?></p>
-                <p class="stat-label">Avis publiés</p>
-            </div>
-        </div>
-        <a class="stat stat--link" href="<?= e(url('admin/books', ['statut' => 'en_attente'])) ?>" title="Voir les livres en attente de validation">
-            <span class="stat-icon <?= $stats['en_attente'] > 0 ? 'stat-icon--red' : 'stat-icon--blue' ?>">
-                <svg class="icon"><use href="#i-clock"/></svg>
-            </span>
-            <div>
-                <p class="stat-num"><?= number_format($stats['en_attente']) ?></p>
-                <p class="stat-label">Livres en attente</p>
-            </div>
+            <svg class="icon admin-quick-card__arrow"><use href="#i-arrow"/></svg>
         </a>
     </div>
 
-    <!-- ---- Toolbar + recherche back-office ---- -->
-    <div class="section-head reveal">
+    <!-- ====== TOOLBAR + RECHERCHE ====== -->
+    <div class="section-head reveal" style="margin-top:2.5rem">
         <h2 class="section-title">Liste des <em>livres</em></h2>
         <form class="search-field" style="max-width:380px;display:inline-flex" role="search" action="<?= e(url('admin')) ?>" method="get">
             <svg class="icon"><use href="#i-search"/></svg>
@@ -185,9 +350,20 @@
             <?php endif; ?>
         </div>
     <?php endif; ?>
+
 </section>
 
-<!-- ---- Panneau latéral (slide-over) : ajout / édition sans rechargement ---- -->
+<!-- ---- Données JSON pour Chart.js ---- -->
+<script id="admin-chart-data" type="application/json">
+{
+    "loanTrend":  <?= $chartLoanTrend ?? '[]' ?>,
+    "bookStatus": <?= $chartBookStatus ?? '[]' ?>,
+    "topBooks":   <?= $chartTopBooks ?? '[]' ?>,
+    "userGrowth": <?= $chartUserGrowth ?? '[]' ?>
+}
+</script>
+
+<!-- ---- Panneau latéral (slide-over) ---- -->
 <aside class="drawer" data-drawer aria-hidden="true" aria-labelledby="drawer-title">
     <div class="drawer-header">
         <div>

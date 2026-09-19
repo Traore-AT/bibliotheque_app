@@ -654,6 +654,218 @@
     }
 
     /* ----------------------------------------------------------
+       initCountUp — Anime les nombres dans les stat cards admin
+       ---------------------------------------------------------- */
+    function initCountUp() {
+        const els = $$('[data-countup]');
+        if (!els.length) return;
+
+        const animate = (el) => {
+            const target = parseInt(el.dataset.countup, 10) || 0;
+            if (REDUCED || target === 0) { el.textContent = target.toLocaleString('fr-FR'); return; }
+
+            const duration = Math.min(1200, 400 + target * 2);
+            const start = performance.now();
+
+            const step = (now) => {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                // easeOutExpo
+                const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                el.textContent = Math.round(eased * target).toLocaleString('fr-FR');
+                if (progress < 1) requestAnimationFrame(step);
+            };
+
+            requestAnimationFrame(step);
+        };
+
+        // Déclenche quand l'élément entre dans le viewport
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animate(entry.target);
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        els.forEach(el => io.observe(el));
+    }
+
+    /* ----------------------------------------------------------
+       initAdminCharts — Graphiques Chart.js du dashboard admin
+       ---------------------------------------------------------- */
+    function initAdminCharts() {
+        const dataEl = document.getElementById('admin-chart-data');
+        if (!dataEl || typeof Chart === 'undefined') return;
+
+        let chartData = {};
+        try { chartData = JSON.parse(dataEl.textContent); } catch { return; }
+
+        // Helpers couleurs CSS
+        const cs = getComputedStyle(document.documentElement);
+        const teal   = '#0F766E';
+        const tealSoft = 'rgba(15,118,110,.12)';
+        const blue   = '#2563EB';
+        const blueSoft = 'rgba(37,99,235,.12)';
+        const muted  = cs.getPropertyValue('--muted').trim() || '#64748B';
+        const border = cs.getPropertyValue('--border').trim() || '#E2E8F0';
+        const ink    = cs.getPropertyValue('--ink').trim() || '#0F172A';
+
+        const fontFamily = "'Plus Jakarta Sans', system-ui, sans-serif";
+
+        Chart.defaults.font.family = fontFamily;
+        Chart.defaults.color = muted;
+
+        // Grille par défaut
+        const gridOpts = {
+            color: border,
+            drawBorder: false,
+        };
+        const tickOpts = { font: { size: 11, weight: '500' }, color: muted };
+
+        /* ---------- 1. Graphique emprunts par mois (barres) ---------- */
+        const loanCtx = document.getElementById('chart-loans');
+        if (loanCtx && chartData.loanTrend && chartData.loanTrend.length) {
+            const trend = chartData.loanTrend;
+            new Chart(loanCtx, {
+                type: 'bar',
+                data: {
+                    labels: trend.map(d => d.label),
+                    datasets: [{
+                        label: 'Emprunts',
+                        data: trend.map(d => d.count),
+                        backgroundColor: trend.map((_, i, arr) =>
+                            i === arr.length - 1 ? teal : 'rgba(15,118,110,.55)'
+                        ),
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: .65,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: REDUCED ? 0 : 900, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            titleFont: { family: fontFamily, size: 12, weight: '700' },
+                            bodyFont:  { family: fontFamily, size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} emprunt${ctx.parsed.y > 1 ? 's' : ''}`,
+                            }
+                        },
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: tickOpts, border: { display: false } },
+                        y: {
+                            grid: gridOpts,
+                            ticks: { ...tickOpts, precision: 0 },
+                            border: { display: false },
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ---------- 2. Donut — statut des livres ---------- */
+        const booksCtx = document.getElementById('chart-books');
+        if (booksCtx && chartData.bookStatus && chartData.bookStatus.length) {
+            const bs = chartData.bookStatus;
+            new Chart(booksCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: bs.map(d => d.label),
+                    datasets: [{
+                        data: bs.map(d => d.value),
+                        backgroundColor: bs.map(d => d.color),
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3,
+                        hoverOffset: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    animation: { duration: REDUCED ? 0 : 1000, animateRotate: true },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            titleFont: { family: fontFamily, size: 12, weight: '700' },
+                            bodyFont:  { family: fontFamily, size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: ctx => ` ${ctx.label} : ${ctx.parsed} livre${ctx.parsed > 1 ? 's' : ''}`,
+                            }
+                        },
+                    }
+                }
+            });
+        }
+
+        /* ---------- 3. Courbe — croissance utilisateurs ---------- */
+        const usersCtx = document.getElementById('chart-users');
+        if (usersCtx && chartData.userGrowth && chartData.userGrowth.length) {
+            const ug = chartData.userGrowth;
+            new Chart(usersCtx, {
+                type: 'line',
+                data: {
+                    labels: ug.map(d => d.label),
+                    datasets: [{
+                        label: 'Inscriptions',
+                        data: ug.map(d => d.count),
+                        borderColor: blue,
+                        backgroundColor: blueSoft,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: blue,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: .4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: REDUCED ? 0 : 900, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            titleFont: { family: fontFamily, size: 12, weight: '700' },
+                            bodyFont:  { family: fontFamily, size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} inscription${ctx.parsed.y > 1 ? 's' : ''}`,
+                            }
+                        },
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: tickOpts, border: { display: false } },
+                        y: {
+                            grid: gridOpts,
+                            ticks: { ...tickOpts, precision: 0 },
+                            border: { display: false },
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /* ----------------------------------------------------------
        Démarrage
        ---------------------------------------------------------- */
     document.addEventListener('DOMContentLoaded', () => {
@@ -668,5 +880,7 @@
         initReveal();
         initBlogFeatures();
         initContactFeatures();
+        initCountUp();
+        initAdminCharts();
     });
 })();

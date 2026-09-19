@@ -155,4 +155,40 @@ final class User extends AbstractModel
              FROM emprunts WHERE statut = \'en_cours\''
         )['n'];
     }
+
+    /**
+     * Croissance mensuelle des inscriptions sur les N derniers mois.
+     * Utilisé pour le graphique de tendance du dashboard admin.
+     *
+     * @return array<int, array{month: string, label: string, count: int}>
+     */
+    public function monthlyGrowth(int $months = 6): array
+    {
+        $rows = $this->rows(
+            'SELECT DATE_FORMAT(date_creation, \'%Y-%m\') AS month,
+                    DATE_FORMAT(date_creation, \'%b %Y\')  AS label,
+                    COUNT(*) AS cnt
+             FROM utilisateurs
+             WHERE date_creation >= DATE_SUB(CURDATE(), INTERVAL :m MONTH)
+             GROUP BY month, label
+             ORDER BY month ASC',
+            [':m' => $months]
+        );
+
+        // Garantir la présence de chaque mois même si aucune inscription.
+        $result = [];
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $key   = date('Y-m', strtotime("-{$i} months"));
+            $label = date('M Y', strtotime("-{$i} months"));
+            $result[$key] = ['month' => $key, 'label' => $label, 'count' => 0];
+        }
+
+        foreach ($rows as $row) {
+            if (isset($result[$row['month']])) {
+                $result[$row['month']]['count'] = (int) $row['cnt'];
+            }
+        }
+
+        return array_values($result);
+    }
 }

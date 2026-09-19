@@ -28,16 +28,18 @@ class AdminController extends Controller
     public function indexAction(): void
     {
         $bookModel = new Book();
+        $loanModel = new Loan();
+        $userModel = new User();
 
         $page   = max(1, (int) $this->get('pageNum', '1'));
         $search = $this->get('q', '');
 
-        $result = $bookModel->paginated($page, BOOKS_PER_PAGE, $search, '');
-        $loanStats = (new Loan())->stats();
+        $result    = $bookModel->paginated($page, BOOKS_PER_PAGE, $search, '');
+        $loanStats = $loanModel->stats();
 
         $stats = [
             'livres'          => (int) $bookModel->count(),
-            'utilisateurs'    => (int) (new User())->count(),
+            'utilisateurs'    => (int) $userModel->count(),
             'emprunts_total'  => (int) $loanStats['total'],
             'emprunts_actifs' => (int) $loanStats['actives'],
             'retards'         => (int) $loanStats['en_retard'],
@@ -46,13 +48,29 @@ class AdminController extends Controller
             'en_attente'      => (int) $bookModel->countByStatus(Book::STATUT_EN_ATTENTE),
         ];
 
+        // ---- Données pour les graphiques ----
+        $loanTrend  = $loanModel->monthlyTrend(6);
+        $topBooks   = $loanModel->topBorrowedBooks(5);
+        $userGrowth = $userModel->monthlyGrowth(6);
+
+        $booksByStatus = [
+            ['label' => 'Publiés',    'value' => (int) $bookModel->countByStatus(Book::STATUT_PUBLIE),     'color' => '#0F766E'],
+            ['label' => 'En attente', 'value' => (int) $bookModel->countByStatus(Book::STATUT_EN_ATTENTE), 'color' => '#D97706'],
+            ['label' => 'Refusés',    'value' => (int) $bookModel->countByStatus(Book::STATUT_REFUSE),     'color' => '#DC2626'],
+        ];
+
         $this->render('admin/index', [
-            'books'      => $result['books'],
-            'totalBooks' => $stats['livres'],
-            'stats'      => $stats,
-            'totalPages' => $result['pages'],
-            'page'       => $result['page'],
-            'search'     => $search,
+            'books'         => $result['books'],
+            'totalBooks'    => $stats['livres'],
+            'stats'         => $stats,
+            'totalPages'    => $result['pages'],
+            'page'          => $result['page'],
+            'search'        => $search,
+            // Chart data (JSON-encoded pour JS)
+            'chartLoanTrend'    => json_encode($loanTrend,    JSON_UNESCAPED_UNICODE),
+            'chartBookStatus'   => json_encode($booksByStatus, JSON_UNESCAPED_UNICODE),
+            'chartTopBooks'     => json_encode($topBooks,      JSON_UNESCAPED_UNICODE),
+            'chartUserGrowth'   => json_encode($userGrowth,    JSON_UNESCAPED_UNICODE),
         ]);
     }
 

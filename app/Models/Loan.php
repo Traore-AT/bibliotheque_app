@@ -314,4 +314,59 @@ final class Loan extends AbstractModel
             'utilisateurs_actifs'=> $actifs,
         ];
     }
+
+    /**
+     * Tendance mensuelle des emprunts sur les N derniers mois.
+     * Utilisé pour alimenter le graphique en barres du dashboard admin.
+     *
+     * @return array<int, array{month: string, label: string, count: int}>
+     */
+    public function monthlyTrend(int $months = 6): array
+    {
+        $rows = $this->rows(
+            'SELECT DATE_FORMAT(date_emprunt, \'%Y-%m\') AS month,
+                    DATE_FORMAT(date_emprunt, \'%b %Y\')  AS label,
+                    COUNT(*) AS cnt
+             FROM emprunts
+             WHERE date_emprunt >= DATE_SUB(CURDATE(), INTERVAL :m MONTH)
+             GROUP BY month, label
+             ORDER BY month ASC',
+            [':m' => $months]
+        );
+
+        // Garantir que tous les mois sont présents (même avec 0 emprunt).
+        $result = [];
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $key   = date('Y-m', strtotime("-{$i} months"));
+            $label = date('M Y', strtotime("-{$i} months"));
+            $result[$key] = ['month' => $key, 'label' => $label, 'count' => 0];
+        }
+
+        foreach ($rows as $row) {
+            if (isset($result[$row['month']])) {
+                $result[$row['month']]['count'] = (int) $row['cnt'];
+            }
+        }
+
+        return array_values($result);
+    }
+
+    /**
+     * Top N livres les plus empruntés (tous statuts d'emprunt confondus).
+     * Utilisé pour le classement horizontal du dashboard admin.
+     *
+     * @return array<int, array{livre_id: int, titre: string, auteur: string, total: int}>
+     */
+    public function topBorrowedBooks(int $limit = 5): array
+    {
+        return $this->rows(
+            'SELECT l.id AS livre_id, l.titre, l.auteur, COUNT(e.id) AS total
+             FROM emprunts e
+             INNER JOIN livres l ON l.id = e.id_livre
+             GROUP BY l.id, l.titre, l.auteur
+             ORDER BY total DESC
+             LIMIT :lim',
+            [':lim' => $limit]
+        );
+    }
 }
