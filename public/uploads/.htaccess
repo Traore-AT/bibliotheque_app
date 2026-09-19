@@ -1,0 +1,7 @@
+# Interdire l'exécution de tout script dans le dossier des couvertures.
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|py|cgi|sh|asp|aspx|jsp)$">
+    Require all denied
+</FilesMatch>
+
+# Désactiver le listing du répertoire.
+Options -Indexes

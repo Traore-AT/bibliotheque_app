@@ -1,0 +1,16 @@
+# Apache : redirige toutes les requêtes vers le Front Controller
+# (permet des URL propres : /books, /book/show?id=1, /wishlist, /admin)
+
+Options -Indexes
+RewriteEngine On
+
+# Ne pas réécrire les fichiers et dossiers réellement existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Tout le reste est envoyé vers index.php (avec PATH_INFO conservé)
+RewriteRule ^ index.php [QSA,L]
+
+# Blocage de l'accès aux fichiers sensibles
+RedirectMatch 403 ^/\.htaccess$
+RedirectMatch 403 ^/\.git/.*$
