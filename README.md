@@ -2,6 +2,20 @@
 
 Application web PHP 8 / MySQL — Architecture **MVC** (POO, PSR-4), conforme OWASP.
 
+### Lien github
+
+- **Pour cloner le projet sur github:**
+
+```bash
+git clone https://github.com/Traore-AT/bibliotheque_app.git
+```
+
+- **Pour recuperer les derniere modifications:**
+
+```bash
+git pull origin main
+```
+
 ## Fonctionnalités
 
 - **Catalogue de livres** paginé (10 livres/page) + **recherche temps réel** (AJAX / Fetch API, requête `LIKE`).
